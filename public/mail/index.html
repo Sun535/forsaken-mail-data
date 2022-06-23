@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN"> 
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="临时邮箱,forsaken mail,disposable mail">
+  <title>Forsaken Mail</title>
+  <link href="https://lib.baomitu.com/semantic-ui/2.1.7/semantic.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/prism.css">
+</head>
+<body>
+<div class="ui fixed borderless menu">
+  <div class="ui text container" style="max-width: 100% !important;">
+    <div href="#" class="header item">
+      <img class="logo" src="https://pic.rmb.bdstatic.com/bjh/other/d6658ee931e117d6c9414a267569b953.png" alt="logo">
+      Forsaken Mail
+    </div>
+    <div class="ui label item right floated mailaddress" style="width: 45%;">
+      <div class="ui left icon input">
+        <input id="to_input" type="text" placeholder="收件人搜索...">
+        <i id="to_btn" class="circular search link icon"></i>
+      </div>
+
+      <div class="ui left icon input" style="margin-left: 20px;">
+        <input id="date_input" type="date" placeholder="时间">
+        <i id="date_btn" class="circular search link icon"></i>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ui main container">
+  <div class="ui grid">
+    <div class="row">
+      <div class="column">
+        <table class="ui celled selectable table">
+          <thead>
+          <tr>
+            <th>发信人</th>
+            <th>收件人</th>
+            <th>主题</th>
+            <th>时间</th>
+          </tr>
+          </thead>
+          <tbody id="maillist">
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4">
+                <div class="ui right floated pagination menu">
+                  <a class="icon item" id="prePage">
+                    <i class="left chevron icon"></i>
+                  </a>
+                  <a class="icon item" id="nextPage">
+                    <i class="right chevron icon"></i>
+                  </a>
+                </div>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <div class="column">
+        <div class="ui card" id="mailcard">
+          <div class="content">
+            <i class="code icon right floated"></i>
+            <div class="header">我的邮件在哪里？</div>
+          </div>
+          <div class="content">
+            <p>等等就来( ͡° ͜ʖ ͡°) </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ui modal" id="raw">
+  <div class="header">
+  </div>
+  <div class="content">
+  </div>
+</div>
+</body>
+<script src="https://lib.baomitu.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://lib.baomitu.com/semantic-ui/2.1.7/semantic.min.js"></script>
+<script src="/js/prism.js"></script>
+
+<script>
+  $(function(){
+    let page = 0
+    let total = 0
+
+    const to_input = $("#to_input")
+    const date_input = $("#date_input")
+    $("#to_btn").click(function(){
+      to_input.parent().addClass("loading")
+      page = 0
+      getMail({
+        to:to_input.val()
+      },function(){to_input.parent().removeClass("loading")})
+    })
+    $("#date_btn").click(function(){
+      date_input.parent().addClass("loading")
+      page = 0
+      getMail({
+        date:new Date(date_input.val() + " 0:0:0").getTime()
+      },function(){date_input.parent().removeClass("loading")})
+    })
+
+
+    let prePage = $("#prePage")
+    let nextPage = $("#nextPage")
+    prePage.click(function(){
+      if(page>0){
+        page--
+        getMail({})
+      }
+    })
+    nextPage.click(function(){
+      if(Math.ceil(total / 20) - 1 > page){
+        page++
+        getMail({})
+      }
+    })
+
+    $maillist = $('#maillist');
+
+    $maillist.on('click', 'tr', function() {
+      var mail = $(this).data('mail');
+      $('#mailcard .header').text(mail.subject || '无主题');
+      $('#mailcard .content:last').html(mail.html);
+      $('#mailcard i').click(function() {
+        $('#raw').modal('show');
+      });
+      $('#raw .header').text('RAW');
+      $('#raw .content').html($('<pre>').html($('<code>').addClass('language-json').html(JSON.stringify(mail, null, 2))));
+      Prism.highlightAll();
+    });
+
+    getMail()
+    function getMail(obj,callback){
+      let token = ""
+      if(('localStorage' in window)) {
+        token = localStorage.getItem('token');
+        if(!token){
+          return
+        }
+      }else{
+        return
+      }
+
+      let params = {
+        offset: page * 20,
+        ...obj
+      }
+      axios({
+        url:'/api/getMail',
+        params,
+        headers: {token}
+      }).then(res=>{
+        if(res.data.code == 200){
+          const data = res.data.data
+          $maillist.empty()
+          total = data.total
+          data.list.forEach(v=>{
+            let mail = v.mail
+            $tr = $('<tr>').data('mail', mail);
+            $tr
+              .append($('<td>').text(mail.from))
+              .append($('<td>').text(mail.to))
+              .append($('<td>').text(mail.subject || '无主题'))
+              .append($('<td>').text((new Date(mail.date)).toLocaleTimeString()));
+            $maillist.prepend($tr);
+          })
+        }
+        if(callback){
+          callback()
+        }
+      })
+    }
+  })
+</script>
+</html>

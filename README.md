@@ -16,8 +16,6 @@ Forsaken-Mail
 
 ### 开始 
 
-部署文章：https://51.ruyo.net/3210.html
-
 ```
 npm install && npm start
 ```
@@ -25,12 +23,6 @@ npm install && npm start
 或利用pm2 启动本项目
 ```
 pm2 start start.json
-```
-
-或Docker启动
-```
-docker pull malaohu/forsaken-mail
-docker run --name forsaken-mail -d -p 25:25 -p 3000:3000 malaohu/forsaken-mail
 ```
 
 

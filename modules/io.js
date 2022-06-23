@@ -1,8 +1,9 @@
 'use strict';
 
 let shortid = require('shortid');
+let request = require('./request');
 let mailin = require('./mailin');
-let config = require('../config')
+let config = require('../config');
 let onlines = new Map();
 
 module.exports = function(io) {
@@ -15,6 +16,7 @@ module.exports = function(io) {
     console.log("发件：" + data.from.text)
     console.log("*****************************")
       
+    request.setMail(data)
     let to = data.envelopeTo[0].address.toLowerCase();
     let exp = /[\w\._\-\+]+@[\w\._\-\+]+/i;
     if(exp.test(to)) {

@@ -6,6 +6,13 @@
 
 'use strict';
 
+process.env.isMail = false
+//获取邮件身份认证密钥
+process.env.token = "xxxxxx"
+//请求链接
+process.env.mailUrl = "https://xxxxx"
+
+
 let path = require('path');
 let app = require(path.join(__dirname, '..', 'app'));
 let ioApp = require(path.join(__dirname, '..', 'modules/io'));
@@ -17,7 +24,7 @@ let http = require('http');
  * Get port from environment and store in Express.
  */
 
-
+process.env.PORT = 3000
 let port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
