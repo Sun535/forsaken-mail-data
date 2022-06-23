@@ -10,7 +10,7 @@ process.env.isMail = false
 //获取邮件身份认证密钥
 process.env.token = "xxxxxx"
 //请求链接
-process.env.mailUrl = "https://xxxxx"
+process.env.mailUrl = "https://xxxxxxx"
 
 
 let path = require('path');
